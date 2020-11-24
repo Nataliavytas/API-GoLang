@@ -9,6 +9,7 @@ import (
 	"github.com/Nataliavytas/API-GoLang/internal/config"
 	"github.com/Nataliavytas/API-GoLang/internal/database"
 	"github.com/Nataliavytas/API-GoLang/internal/service/chat"
+	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,6 +18,7 @@ func main() {
 	cfg := readConfig()
 
 	db, err := database.NewDatabase(cfg)
+	defer db.Close()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -28,7 +30,11 @@ func main() {
 	}
 
 	service, _ := chat.New(db, cfg)
+	httpService := chat.NewHTTPTransport(service)
 
+	r := gin.Default()
+	httpService.Register(r)
+	r.Run()
 }
 
 func readConfig() *config.Config {
