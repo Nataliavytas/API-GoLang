@@ -1,4 +1,4 @@
-package chat
+package library
 
 import (
 	"net/http"
@@ -33,83 +33,31 @@ func makeEndpoints(s Service) []*endpoint {
 
 	list = append(list, &endpoint{
 		method:   "GET",
-		path:     "/messages",
+		path:     "/books",
 		function: getAll(s),
 	})
 	list = append(list, &endpoint{
 		method:   "GET",
-		path:     "/message/:id",
-		function: getMessageByID(s),
+		path:     "/book/:id",
+		function: getBookByID(s),
 	})
 	list = append(list, &endpoint{
 		method:   "POST",
-		path:     "/message",
-		function: postMessage(s),
+		path:     "/book",
+		function: postBook(s),
 	})
 	list = append(list, &endpoint{
 		method:   "DELETE",
-		path:     "/message/:id",
-		function: deleteMessage(s),
+		path:     "/book/:id",
+		function: deleteBook(s),
 	})
 	list = append(list, &endpoint{
 		method:   "PUT",
-		path:     "/message/:id",
-		function: putMessage(s),
+		path:     "/book/:id",
+		function: putBook(s),
 	})
 
 	return list
-}
-
-func getAll(s Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"messages": s.FindAll(),
-		})
-	}
-}
-
-func deleteMessage(s Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Identificador Invalido.",
-			})
-		}
-
-		posibleErr := s.DeleteMessage(id)
-		if posibleErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Ocurrio un error. No se pudo eliminar el elemento.",
-			})
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"Elemento eliminadao": "El elemento se elimino correctamente.",
-		})
-	}
-}
-
-func getMessageByID(s Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id := c.Param("id")
-		i, err := strconv.Atoi(id)
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Identificador Invalido.",
-			})
-		}
-		message, error := s.FindByID(i)
-		if error != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "No se encontro ningun elemento con dicho ID.",
-			})
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": *message,
-		})
-	}
 }
 
 //Register ...
@@ -119,50 +67,102 @@ func (s httpService) Register(r *gin.Engine) {
 	}
 }
 
-func postMessage(s Service) gin.HandlerFunc {
+func getAll(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var message Message
-		err := c.BindJSON(&message)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Ocurrio un error, intente nuevamente.",
-			})
-		}
-		postErr := s.PostMessage(message)
-		if postErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Ocurrio un error, intente nuevamente.",
-			})
-		}
 		c.JSON(http.StatusOK, gin.H{
-			"messages": "Se inserto el elemento con exito",
+			"books": s.FindAll(),
 		})
 	}
 }
 
-func putMessage(s Service) gin.HandlerFunc {
+func getBookByID(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var message Message
-		err := c.BindJSON(&message)
+		id := c.Param("id")
+		i, err := strconv.Atoi(id)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Ocurrio un error, intente nuevamente.",
+				"error": "Identificador Invalido.",
+			})
+		}
+		book, error := s.FindByID(i)
+		if error != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "No se encontro ningun libro con dicho ID.",
+			})
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"book": *book,
+		})
+	}
+}
+
+func postBook(s Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var book Book
+		err := c.BindJSON(&book)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Ocurrio un error, intente nuevamente.",
+			})
+		}
+		postErr := s.PostBook(book)
+		if postErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Ocurrio un error, intente nuevamente.",
+			})
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Se inserto el libro con exito",
+		})
+	}
+}
+
+func deleteBook(s Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Identificador Invalido.",
+			})
+		}
+
+		posibleErr := s.DeleteBook(id)
+		if posibleErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Ocurrio un error. No se pudo eliminar el libro.",
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "El libro se elimino correctamente.",
+		})
+	}
+}
+
+func putBook(s Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var book Book
+		err := c.BindJSON(&book)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Ocurrio un error, intente nuevamente.",
 			})
 		}
 
 		id := c.Param("id")
 		i, err := strconv.Atoi(id)
 
-		updateErr := s.UpdateMessage(i, message)
+		updateErr := s.UpdateBook(i, book)
 
 		if updateErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"Error": "Ocurrio un error, intente nuevamente.",
+				"error": "Ocurrio un error, intente nuevamente.",
 			})
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"messages": "Se actualizo el elemento con exito",
+			"message": "Se actualizo el libro con exito",
 		})
 	}
 }

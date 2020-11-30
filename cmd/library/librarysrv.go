@@ -4,11 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/Nataliavytas/API-GoLang/internal/config"
 	"github.com/Nataliavytas/API-GoLang/internal/database"
-	"github.com/Nataliavytas/API-GoLang/internal/service/chat"
+	"github.com/Nataliavytas/API-GoLang/internal/service/library"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
@@ -29,8 +28,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	service, _ := chat.New(db, cfg)
-	httpService := chat.NewHTTPTransport(service)
+	service, _ := library.New(db, cfg)
+	httpService := library.NewHTTPTransport(service)
 
 	r := gin.Default()
 	httpService.Register(r)
@@ -51,9 +50,11 @@ func readConfig() *config.Config {
 }
 
 func createSchema(db *sqlx.DB) error {
-	schema := `CREATE TABLE IF NOT EXISTS messages (
+	schema := `CREATE TABLE IF NOT EXISTS library (
 			id integer primary key autoincrement,
-			text varchar);`
+			title varchar,
+			author varchar, 
+			price integer);`
 
 	// execute a query on the server
 	_, err := db.Exec(schema)
@@ -62,8 +63,10 @@ func createSchema(db *sqlx.DB) error {
 	}
 
 	// or, you can use MustExec, which panics on error
-	insertMessage := `INSERT INTO messages (text) VALUES (?)`
-	s := fmt.Sprintf("Message numer %v", time.Now().Nanosecond())
-	db.MustExec(insertMessage, s)
+	insertBook := `INSERT INTO library (title, author, price) VALUES (?, ?, ?)`
+	title := "Heartstopper"
+	author := "Alice Olsman"
+	price := 700
+	db.MustExec(insertBook, title, author, price)
 	return nil
 }
