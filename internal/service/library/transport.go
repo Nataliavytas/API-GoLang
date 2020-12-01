@@ -28,6 +28,7 @@ func NewHTTPTransport(s Service) HTTPService {
 	return httpService{endpoints}
 }
 
+//Cretion of the endpoints
 func makeEndpoints(s Service) []*endpoint {
 	list := []*endpoint{}
 
@@ -67,6 +68,7 @@ func (s httpService) Register(r *gin.Engine) {
 	}
 }
 
+//Get all the books in the database
 func getAll(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -75,6 +77,7 @@ func getAll(s Service) gin.HandlerFunc {
 	}
 }
 
+//Get a book by id
 func getBookByID(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -97,6 +100,7 @@ func getBookByID(s Service) gin.HandlerFunc {
 	}
 }
 
+//Post a book
 func postBook(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var book Book
@@ -118,6 +122,7 @@ func postBook(s Service) gin.HandlerFunc {
 	}
 }
 
+//Delete a book
 func deleteBook(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
@@ -140,6 +145,7 @@ func deleteBook(s Service) gin.HandlerFunc {
 	}
 }
 
+//Update a book
 func putBook(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var book Book

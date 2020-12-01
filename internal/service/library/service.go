@@ -5,7 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Book ...
+// Book struct
 type Book struct {
 	ID     int64  `json:"id"`
 	Title  string `json:"title"`
@@ -13,7 +13,7 @@ type Book struct {
 	Price  int64  `json:"price"`
 }
 
-//Service ...
+//Service interface
 type Service interface {
 	FindByID(int) (*Book, error)
 	FindAll() []*Book
@@ -22,16 +22,18 @@ type Service interface {
 	DeleteBook(int) error
 }
 
+//service struct
 type service struct {
 	db   *sqlx.DB
 	conf *config.Config
 }
 
-//New ..
+//New method for service creation
 func New(db *sqlx.DB, c *config.Config) (Service, error) {
 	return service{db, c}, nil
 }
 
+//Finds every book in the library table
 func (s service) FindAll() []*Book {
 	var list []*Book
 	if err := s.db.Select(&list, "SELECT * FROM library"); err != nil {
@@ -40,6 +42,7 @@ func (s service) FindAll() []*Book {
 	return list
 }
 
+//Find the book with the given id
 func (s service) FindByID(ID int) (*Book, error) {
 	var book Book
 
@@ -54,6 +57,7 @@ func (s service) FindByID(ID int) (*Book, error) {
 	return &book, nil
 }
 
+//Saves the book given in the database
 func (s service) PostBook(book Book) error {
 	sentence := "INSERT INTO library (title, author, price) VALUES (?, ?, ?)"
 	_, err := s.db.Exec(sentence, book.Title, book.Author, book.Price)
@@ -64,6 +68,7 @@ func (s service) PostBook(book Book) error {
 	return nil
 }
 
+//Delete de book with the id given
 func (s service) DeleteBook(id int) error {
 	sentence := `DELETE FROM library WHERE id=?;`
 	_, err := s.db.Exec(sentence, id)
@@ -75,6 +80,7 @@ func (s service) DeleteBook(id int) error {
 	return nil
 }
 
+//Updates the book with the id given and the new information
 func (s service) UpdateBook(id int, book Book) error {
 	sentence := `UPDATE library SET title = ?, author = ?, price = ? WHERE id=?;`
 	_, err := s.db.Exec(sentence, book.Title, book.Author, book.Price, id)

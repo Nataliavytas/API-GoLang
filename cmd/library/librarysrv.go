@@ -49,6 +49,7 @@ func readConfig() *config.Config {
 	return cfg
 }
 
+//create de db schema
 func createSchema(db *sqlx.DB) error {
 	schema := `CREATE TABLE IF NOT EXISTS library (
 			id integer primary key autoincrement,
@@ -56,13 +57,11 @@ func createSchema(db *sqlx.DB) error {
 			author varchar, 
 			price integer);`
 
-	// execute a query on the server
 	_, err := db.Exec(schema)
 	if err != nil {
 		return err
 	}
 
-	// or, you can use MustExec, which panics on error
 	insertBook := `INSERT INTO library (title, author, price) VALUES (?, ?, ?)`
 	title := "Heartstopper"
 	author := "Alice Olsman"
